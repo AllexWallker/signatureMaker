@@ -1,11 +1,12 @@
 #pragma once
 #include <fstream>
 #include <unordered_map>
-#include <future>
 #include <vector>
 #include <thread>
 #include <memory>
+#include <filesystem>
 
+namespace fs = std::__fs::filesystem;
 
 class fileChunk {
 public:
@@ -15,7 +16,6 @@ private:
     std::string data;
 };
 
-//1048576
 class signatureMaker {
 public:
     signatureMaker(std::string& aFilePath, size_t aChunkSize = 1000000);
@@ -24,6 +24,7 @@ public:
 private:
     void writeSignature(std::string& resultMessage);
     std::string initBuffer(size_t bufferSize);
+    void initChunkSize();
     
     std::unordered_map<int, std::string> fileSignature;
     std::vector<std::unique_ptr<std::thread>> threads;
@@ -32,5 +33,6 @@ private:
     std::string directoryPath;
     std::string fileName;
     size_t fileSize;
+    size_t leftToRead;
 };
 

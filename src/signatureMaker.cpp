@@ -1,12 +1,9 @@
 #include <iostream>
-#include <filesystem>
 #include <boost/uuid/detail/md5.hpp>
 #include <boost/algorithm/hex.hpp>
 #include <functional>
 
 #include "signatureMaker.h"
-
-namespace fs = std::filesystem;
 
 static std::mutex m;
 
@@ -24,7 +21,6 @@ static void makeChunkHash(std::unordered_map<int, std::string>& signature, fileC
     
     std::lock_guard<std::mutex> lock(m);
     signature.insert({index, result});
-    std::cout << "index " << index << std::endl;
     delete chunk;
 }
 
@@ -39,6 +35,7 @@ signatureMaker::signatureMaker(std::string& aFilePath, size_t aChunkSize): fileP
     directoryPath = path.parent_path();
     fileName = path.filename();
     fileSize = fs::file_size(path);
+    leftToRead = fileSize;
 }
 
 signatureMaker::~signatureMaker() {
@@ -50,21 +47,22 @@ void signatureMaker::makeFileSignature(std::string& resultMessage) {
     std::ifstream fin;
     fin.open(filePath, std::ios::binary | std::ios::out);
     if(fin.is_open()) {
-        if(chunkSize > fileSize) {
-            chunkSize = fileSize;
-        }
-        //fix
+        initChunkSize();
         std::string buffer = initBuffer(chunkSize);
         int chunkIndex = 0;
         while(fin.read(&buffer[0], chunkSize)) {
+            if(chunkSize == 0) {
+                resultMessage = "file size is zero bites";
+                break;
+            }
             auto chunk = new fileChunk(buffer);
-            std::unique_ptr<std::thread> ptr(new std::thread([this, chunk, chunkIndex]() {
+            std::unique_ptr<std::thread> thread_ptr(new std::thread([this, chunk, chunkIndex] {
                 makeChunkHash(fileSignature, chunk, chunkIndex);
             }));
-            threads.push_back(std::move(ptr));
+            threads.push_back(std::move(thread_ptr));
             chunkIndex++;
-            
             buffer = initBuffer(chunkSize);
+            initChunkSize();
         }
     }
     else {
@@ -102,4 +100,13 @@ void signatureMaker::writeSignature(std::string& resultMessage) {
 std::string signatureMaker::initBuffer(size_t bufferSize) {
     std::string buffer(bufferSize, '\0');
     return buffer;
+}
+
+void signatureMaker::initChunkSize() {
+    if(leftToRead > chunkSize) {
+        leftToRead -= chunkSize;
+    }
+    else {
+        chunkSize = leftToRead;
+    }
 }
