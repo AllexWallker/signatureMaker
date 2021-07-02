@@ -9,21 +9,19 @@ int main(int argc, const char * argv[]) {
     std::string filePath = "";
     std::getline(std::cin, filePath);
 
-    if(filePath.empty()) {
-        resultMessage = "filepath is empty\n";
-        std::cout << resultMessage;
-        return 0;
+    try {
+        std::unique_ptr<signatureMaker> sMaker(new signatureMaker(filePath));
+        sMaker->makeFileSignature(resultMessage);
     }
-    if(!fs::exists(filePath)) {
-        resultMessage = "file doesn't exist\n";
-        std::cout << resultMessage;
-        return 0;
+    catch(fs::filesystem_error) {
+        resultMessage = "The file isn't exist\n";
     }
-    
-    auto sMaker = new signatureMaker(filePath);
-    sMaker->makeFileSignature(resultMessage);
-    delete sMaker;
-        
+    catch(std::ifstream::failure){
+        resultMessage = "Exception opening/reading/closing file\n";
+    }
+    catch(std::out_of_range) {
+        resultMessage = "Something went wrong with reading the result map\n";
+    }
     std::cout << resultMessage;
     
     return 0;
