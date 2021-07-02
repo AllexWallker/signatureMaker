@@ -1,0 +1,1 @@
+Use command "cmake . -Bbuild", than "cd build" and than "make" to build and compile program.

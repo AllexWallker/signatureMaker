@@ -31,5 +31,6 @@ private:
     std::string filePath;
     std::string directoryPath;
     std::string fileName;
+    size_t fileSize;
 };
 

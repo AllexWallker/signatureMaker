@@ -6,7 +6,7 @@
 
 #include "signatureMaker.h"
 
-namespace fs = std::__fs::filesystem;
+namespace fs = std::filesystem;
 
 static std::mutex m;
 
@@ -38,6 +38,7 @@ signatureMaker::signatureMaker(std::string& aFilePath, size_t aChunkSize): fileP
     auto path = fs::path(aFilePath.c_str());
     directoryPath = path.parent_path();
     fileName = path.filename();
+    fileSize = fs::file_size(path);
 }
 
 signatureMaker::~signatureMaker() {
@@ -49,6 +50,10 @@ void signatureMaker::makeFileSignature(std::string& resultMessage) {
     std::ifstream fin;
     fin.open(filePath, std::ios::binary | std::ios::out);
     if(fin.is_open()) {
+        if(chunkSize > fileSize) {
+            chunkSize = fileSize;
+        }
+        //fix
         std::string buffer = initBuffer(chunkSize);
         int chunkIndex = 0;
         while(fin.read(&buffer[0], chunkSize)) {
