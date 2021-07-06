@@ -15,7 +15,7 @@ static void makeChunkHash(std::unordered_map<int, std::string>& signature, fileC
     md5::digest_type digest;
     hash.process_bytes(chunk->getData().data(), chunk->getData().size());
     hash.get_digest(digest);
-    
+
     const auto charDigest = reinterpret_cast<const char *>(&digest);
     boost::algorithm::hex(charDigest, charDigest + sizeof(md5::digest_type), std::back_inserter(result));
     
@@ -52,7 +52,6 @@ void signatureMaker::makeFileSignature(std::string& resultMessage) {
         int chunkIndex = 0;
         while(fin.read(&buffer[0], chunkSize)) {
             if(chunkSize == 0) {
-                resultMessage = "file size is zero bites";
                 break;
             }
             auto chunk = new fileChunk(buffer);
@@ -66,7 +65,6 @@ void signatureMaker::makeFileSignature(std::string& resultMessage) {
         }
     }
     else {
-        resultMessage = "unable to open file\n";
         fin.close();
         return;
     }
@@ -89,7 +87,7 @@ void signatureMaker::writeSignature(std::string& resultMessage) {
             file << "chunk " << i << " " << fileSignature.at(i) << std::endl;
         }
         file.close();
-        resultMessage = "file was written successfuly, directory:" + directoryPath + "\n";
+        resultMessage = "file was written successfuly to directory: " + directoryPath + "\n";
         
     }
     else {

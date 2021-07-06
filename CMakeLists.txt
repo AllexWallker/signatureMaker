@@ -11,7 +11,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 file (GLOB COMMON_SRC src/*.cpp)
 set (SOURCE ${COMMON_SRC})
 
-find_package(Boost 1.76)
+find_package(Boost 1.70.0)
 if(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS})
 endif()

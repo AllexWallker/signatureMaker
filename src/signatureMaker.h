@@ -6,7 +6,11 @@
 #include <memory>
 #include <filesystem>
 
+#ifdef __clang__
 namespace fs = std::__fs::filesystem;
+#else
+namespace fs = std::filesystem;
+#endif
 
 class fileChunk {
 public:
